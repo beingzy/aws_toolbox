@@ -23,7 +23,7 @@ def s3_list_all_buckets(print_out=False):
         bucket_names.append(bucket.name)
         if print_out:
             print( "-- {}: {} \n".format(ii+1, bucket.name) )
-    return(bucket_names)
+    return( bucket_names )
 	
 def s3_create_new_bucket(name, **kwargs):
     """ create a new bucket """
@@ -40,11 +40,23 @@ def s3_create_new_bucket(name, **kwargs):
 	
 def s3_upload_data(file_path, bucket_name, object_name, **kwargs):
     """ create a new object in S3's specified bucket 
-	    to store provided local data 
+        to store provided local data 
     """
     tansfer = S3Transfer(boto3.client('s3'))
-    transfer.upload_file( filename=file_path, bucket=bucket_name, key=object_name, 
-        callback=ProgressPercentage(file_path) )
+    # convert single file_path (string) to a list 
+    # in order to unify processing for both individual 
+    # and multiple file paths
+    if type(file_path) != 'list':
+        file_path = list(file_path)
+		
+    tot_files = len(file_path)
+	
+    for ii, fpath in enumerate(file_path):
+        appendix = "_{}".format(ii)
+        object_name = object_name + appendix if ii != 0 else object_name
+        print("\n{} / {}:".format(ii+1, tot_files))
+        transfer.upload_file( filename=fpath, bucket=bucket_name, key=object_name, 
+            callback=ProgressPercentage(fpath) )	
     return
 	
 def s3_download_data(file_path, bucket_name, object_name, **kwargs):
@@ -52,12 +64,12 @@ def s3_download_data(file_path, bucket_name, object_name, **kwargs):
 	"""
     tansfer = S3Transfer(boto3.client('s3'))
     transfer.upload_file( filename=file_path, bucket=bucket_name, key=object_name, 
-        callback=ProgressPercentage(file_path) )
+        callback = ProgressPercentage(file_path) )
     return
 	    
 class ProgressPercentage(object):
     # source code is eferrenced on boto3 official doc: 
-	#    http://boto3.readthedocs.org/en/latest/_modules/boto3/s3/transfer.html
+    #    http://boto3.readthedocs.org/en/latest/_modules/boto3/s3/transfer.html
     def __init__(self, filename):
         self._filename = filename 
         self._size = float(os.path.getsize(filename))
