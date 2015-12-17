@@ -16,7 +16,8 @@ import boto3
 from boto3.s3.transfer import S3Transfer
 
 def s3_list_all_buckets(print_out=False):
-    """ list all buckets' name of associated account """
+    """ list all buckets' name of associated account 
+	"""
     s3 = boto3.resource('s3')
     bucket_names = []
     for ii, bucket in enumerate(s3.buckets.all()):
@@ -26,7 +27,8 @@ def s3_list_all_buckets(print_out=False):
     return( bucket_names )
 	
 def s3_create_new_bucket(name, **kwargs):
-    """ create a new bucket """
+    """ create a new bucket 
+	"""
     s3 = boto3.resource('s3')
     # check if bucket exists already
     exist_buckets = s3_list_all_buckets(print_out=False)
@@ -35,7 +37,7 @@ def s3_create_new_bucket(name, **kwargs):
         return
 
     # create bucket
-    resp = s3.create_bucket(Bucket=name, **kwargs)
+    s3.create_bucket(Bucket=name, **kwargs)
     return 
 	
 def s3_upload_data(file_path, bucket_name, object_name, **kwargs):
@@ -68,6 +70,9 @@ def s3_download_data(file_path, bucket_name, object_name, **kwargs):
     return
 	    
 class ProgressPercentage(object):
+    """ class: provide call-back function to track progress
+	           transfer()
+	"""
     # source code is eferrenced on boto3 official doc: 
     #    http://boto3.readthedocs.org/en/latest/_modules/boto3/s3/transfer.html
     def __init__(self, filename):
@@ -88,7 +93,3 @@ class ProgressPercentage(object):
             )
             sys.stdout.flush()
 		
-	
-
-	
-	
