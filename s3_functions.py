@@ -86,7 +86,7 @@ class ProgressPercentage(object):
             self._seen_so_far += bytes_amount
             percentage = ( self._seen_so_far * 1.0 / self._size ) * 100
             sys.stdout.write(
-            "Uploading: {} {:.2f} mb / {:.2f} mb (Progress: {:.2f}%, Speed: {:.2f} kb)".format(self._filename,
+            "\rUploading: {} {:.2f} mb / {:.2f} mb (Progress: {:.2f}%, Speed: {:.2f} kb)".format(self._filename,
                                                                                                self._seen_so_far / 1000000,
                                                                                                self._size / 1000000,
                                                                                                percentage,
