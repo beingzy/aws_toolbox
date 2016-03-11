@@ -25,6 +25,33 @@ def s3_list_all_buckets(print_out=False):
     return bucket_names
 
 
+def s3_list_all_folder(bucket_name):
+    """return all folder under a bucket"""
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    all_objects = [obj.key for obj in bucket.objects.all()]
+    return [obj for obj in all_objects if obj[-1] == "/"]
+
+
+def s3_list_all_files(bucket_name, folder_name=None):
+    """ return all files under folder of bucket
+    """
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    all_objects = [obj.key for obj in bucket.objects.all()]
+    all_folders = [obj for obj in all_objects if obj[-1] == "/"]
+    all_files = [obj for obj in all_objects if not obj in all_folders]
+    if not folder_name is None:
+        file_names = []
+        for file in all_files:
+            file_folder_name, file_name = file.split("/")
+            if file_folder_name == folder_name:
+                file_names.append(file_name)
+    else:
+        file_names = all_files
+    return file_names
+
+
 def s3_create_new_bucket(name, **kwargs):
     """ create a new bucket 
     """
@@ -63,7 +90,7 @@ def s3_download_data(file_path, bucket_name, object_name, **kwargs):
     """ download s3's object and save it to file_path
     """
     transfer = S3Transfer(boto3.client('s3'))
-    transfer.download_file( filename=file_path, bucket=bucket_name, key=object_name, 
+    transfer.download_file(filename=file_path, bucket=bucket_name, key=object_name,
         callback = ProgressPercentage(file_path))
 
 
