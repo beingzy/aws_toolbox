@@ -15,15 +15,14 @@ import boto3
 from boto3.s3.transfer import S3Transfer
 
 def s3_list_all_buckets(print_out=False):
-    """ list all buckets' name of associated account 
-    """
+    """ list all buckets' name of associated account """
     s3 = boto3.resource('s3')
     bucket_names = []
     for ii, bucket in enumerate(s3.buckets.all()):
         bucket_names.append(bucket.name)
         if print_out:
             print( "-- {}: {} \n".format(ii+1, bucket.name) )
-    return( bucket_names )
+    return bucket_names
 
 
 def s3_create_new_bucket(name, **kwargs):
@@ -33,33 +32,31 @@ def s3_create_new_bucket(name, **kwargs):
     # check if bucket exists already
     exist_buckets = s3_list_all_buckets(print_out=False)
     if name in exist_buckets:
-        print("WARNING: Same name had been found for an existing bucket !")
-        return
-    # create bucket
-    s3.create_bucket(Bucket=name, **kwargs)
-    return 
+        msg = "Same name had been found for an existing bucket !"
+        raise Warning(msg)
+    else:
+        s3.create_bucket(Bucket=name, **kwargs)
 
 
-def s3_upload_data(file_path, bucket_name, folder_name='', **kwargs):
+def s3_upload_data(file_paths, bucket_name, folder_name='', **kwargs):
     """ create a new object in S3's specified bucket 
         to store provided local data 
     """
     transfer = S3Transfer( boto3.client('s3') )
-    # convert single file_path (string) to a list 
+    # convert single file_paths (string) to a list
     # in order to unify processing for both individual 
     # and multiple file paths
-    if type(file_path) != 'list':
-        file_path = [file_path]
+    if type(file_paths) != 'list':
+        file_paths = [file_paths]
 
-    tot_files = len(file_path)
+    tot_files = len(file_paths)
 
-    for ii, fpath in enumerate(file_path):
+    for ii, fpath in enumerate(file_paths):
         extracted_file_name = fpath.split(os.sep)[-1]
         object_path = folder_name + '/' + extracted_file_name
         print("\n{} / {}:".format(ii+1, tot_files))
         transfer.upload_file( filename=fpath, bucket=bucket_name, key=object_path, 
-            callback=ProgressPercentage(fpath) )	
-    return
+            callback=ProgressPercentage(fpath) )
 
 
 def s3_download_data(file_path, bucket_name, object_name, **kwargs):
@@ -67,8 +64,7 @@ def s3_download_data(file_path, bucket_name, object_name, **kwargs):
     """
     transfer = S3Transfer(boto3.client('s3'))
     transfer.download_file( filename=file_path, bucket=bucket_name, key=object_name, 
-        callback = ProgressPercentage(file_path) )
-    return
+        callback = ProgressPercentage(file_path))
 
 
 class ProgressPercentage(object):
